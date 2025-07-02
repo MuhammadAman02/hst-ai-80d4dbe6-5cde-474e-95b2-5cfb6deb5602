@@ -1,113 +1,60 @@
-from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError
-from typing import Dict, List, Optional, Union, Any, Callable
-import traceback
+"""Error handlers for the FastAPI application."""
 
-from app.core.exceptions import AppException, ErrorDetail
-from app.core.logging import app_logger
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
+from app.core.logging import get_logger
+
+logger = get_logger("error_handlers")
+
+class AppError(Exception):
+    """Base application error."""
+    def __init__(self, message: str, status_code: int = 500):
+        self.message = message
+        self.status_code = status_code
+        super().__init__(self.message)
+
+class ValidationError(AppError):
+    """Validation error."""
+    def __init__(self, message: str):
+        super().__init__(message, status_code=400)
+
+class NotFoundError(AppError):
+    """Resource not found error."""
+    def __init__(self, message: str):
+        super().__init__(message, status_code=404)
+
+class UnauthorizedError(AppError):
+    """Unauthorized access error."""
+    def __init__(self, message: str):
+        super().__init__(message, status_code=401)
 
 def setup_error_handlers(app: FastAPI) -> None:
-    """Set up global exception handlers for the FastAPI application."""
-
-    @app.exception_handler(AppException)
-    async def app_exception_handler(request: Request, exc: AppException):
-        app_logger.error(
-            f"AppException caught: {exc.name} - {exc.detail}",
-            extra={"request_url": str(request.url), "status_code": exc.status_code}
-        )
+    """Set up error handlers for the FastAPI application."""
+    
+    @app.exception_handler(AppError)
+    async def app_error_handler(request: Request, exc: AppError):
+        logger.error(f"Application error: {exc.message}")
         return JSONResponse(
             status_code=exc.status_code,
-            content={"detail": exc.detail, "name": exc.name},
-            headers=exc.headers
+            content={"error": exc.message}
         )
-
-    @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError):
-        app_logger.error(
-            f"Request validation error: {exc.errors()}",
-            extra={"request_url": str(request.url), "body": exc.body}
-        )
+    
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(request: Request, exc: HTTPException):
+        logger.warning(f"HTTP exception: {exc.detail}")
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content={"detail": exc.errors(), "body": exc.body},
+            status_code=exc.status_code,
+            content={"error": exc.detail}
         )
-
-    @app.exception_handler(ValidationError)
-    async def pydantic_validation_exception_handler(request: Request, exc: ValidationError):
-        app_logger.error(
-            f"Pydantic validation error: {exc.errors()}",
-            extra={"request_url": str(request.url)}
-        )
-        return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content={"detail": exc.errors()},
-        )
-
+    
     @app.exception_handler(Exception)
-    async def generic_exception_handler(request: Request, exc: Exception):
-        app_logger.exception(
-            f"Unhandled exception: {exc}",
-            extra={"request_url": str(request.url)}
-        )
+    async def global_exception_handler(request: Request, exc: Exception):
+        logger.error(f"Unexpected error: {str(exc)}", exc_info=True)
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "An unexpected error occurred."},
+            status_code=500,
+            content={"error": "An unexpected error occurred"}
         )
+    
+    logger.info("Error handlers configured successfully")
 
-def create_error_response(
-    status_code: int, 
-    detail: Union[str, List[ErrorDetail]],
-    headers: Optional[Dict[str, Any]] = None
-) -> JSONResponse:
-    """Create a standardized error response.
-    
-    Args:
-        status_code: HTTP status code
-        detail: Error detail message or list of error details
-        headers: Optional response headers
-        
-    Returns:
-        JSONResponse with standardized error format
-    """
-    if isinstance(detail, str):
-        content = {"detail": detail}
-    else:
-        content = {"detail": [error.dict() for error in detail]}
-    
-    return JSONResponse(
-        status_code=status_code,
-        content=content,
-        headers=headers,
-    )
-
-def with_error_handling(func: Callable) -> Callable:
-    """Decorator to add error handling to any function.
-    
-    This decorator catches exceptions and logs them appropriately.
-    It can be used for non-FastAPI functions that need error handling.
-    
-    Args:
-        func: The function to wrap with error handling
-        
-    Returns:
-        Wrapped function with error handling
-    """
-    async def wrapper(*args, **kwargs):
-        try:
-            return await func(*args, **kwargs)
-        except AppException as exc:
-            app_logger.error(f"AppException in {func.__name__}: {exc.detail}")
-            raise
-        except Exception as exc:
-            app_logger.error(
-                f"Unhandled exception in {func.__name__}: {str(exc)}",
-                extra={"traceback": traceback.format_exc()}
-            )
-            raise AppException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An unexpected error occurred. Please try again later."
-            )
-    
-    return wrapper
+__all__ = ["setup_error_handlers", "AppError", "ValidationError", "NotFoundError", "UnauthorizedError"]
