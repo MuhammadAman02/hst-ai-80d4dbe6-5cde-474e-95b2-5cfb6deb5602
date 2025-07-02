@@ -1,229 +1,290 @@
-# HST AI Python Engineer Project Base (2025 Edition)
+# LinkedIn Clone - Professional Networking Platform
 
-A modern, production-ready foundation for building Python web applications with best practices for 2025. This project base is designed to work seamlessly with the HST AI Python Engineer prompt.
+A modern professional networking platform built with NiceGUI and FastAPI, featuring user profiles, connections, posts, and professional information management.
 
 ## Features
 
-- **Framework Flexibility**: Support for multiple UI frameworks (NiceGUI, FastAPI+Jinja2, ReactPy)
-- **UI-First Development**: Prioritizes creating responsive, modern UIs before complex backend features
-- **SQLAlchemy V2 Ready**: Updated database patterns using SQLAlchemy 2.0
-- **Pydantic V2 Compatible**: Uses the latest Pydantic patterns for data validation
-- **Docker Support**: Production-ready containerization with a multi-stage Dockerfile
-- **Fly.io Optimized**: Includes a `fly.toml` for easy deployment with auto-scaling
-- **Version Compatibility**: Carefully selected dependency versions to ensure stability
-- **Environment Configuration**: Uses `.env` files with pydantic-settings for type-safe configuration
+### 🔐 Authentication & User Management
+- User registration and login
+- Secure password hashing with bcrypt
+- JWT token-based authentication
+- Profile management with professional information
 
-## Project Structure
+### 👥 Professional Networking
+- Send and receive connection requests
+- Accept/decline connection requests
+- View network connections
+- People you may know suggestions
 
-```
-project_base/
-├── app/
-│   ├── __init__.py
-│   ├── api/            # API endpoints (e.g., FastAPI routers)
-│   │   └── __init__.py
-│   ├── core/           # Core configuration, settings, error handling, logging
-│   │   └── __init__.py
-│   ├── frontend/       # UI implementations (e.g., NiceGUI pages, ReactPy components, FastAPI routes)
-│   │   ├── __init__.py
-│   │   # ├── nicegui_app.py  # Example: NiceGUI implementation
-│   │   # ├── reactpy_app.py  # Example: ReactPy implementation
-│   │   # └── routes.py       # Example: FastAPI frontend routes
-│   ├── generated/      # AI-generated application code
-│   │   └── __init__.py
-│   ├── models/         # Data models & schemas (e.g., Pydantic, SQLAlchemy)
-│   │   └── __init__.py
-│   ├── services/       # Business logic & external API integrations
-│   │   └── __init__.py
-│   ├── static/         # Static assets (CSS, JS, images). ALL image files MUST be placed here or in subdirectories within static/. Do NOT create separate top-level image directories like 'pictures/'.
-│   ├── templates/      # HTML templates (Jinja2)
-│   └── main.py         # Defines FastAPI routes and application logic for the 'app' module
-├── .dockerignore         # Specifies intentionally untracked files for Docker
-├── .env                  # Environment variables (create this file based on .env.example if provided)
-├── Dockerfile            # Container configuration
-├── fly.toml              # fly.io deployment configuration
-├── main.py               # Application entry point (runs the Uvicorn server)
-├── README.md             # This file
-└── requirements.txt      # Python dependencies
-```
+### 📝 Content Sharing
+- Create and share posts
+- Like and comment on posts
+- Personalized feed based on connections
+- Real-time interaction updates
 
-## Getting Started
+### 💼 Professional Profiles
+- Comprehensive user profiles
+- Experience and work history
+- Education background
+- Skills and endorsements
+- Professional headlines and summaries
+
+### 🎨 Modern UI/UX
+- Clean, professional interface
+- Responsive design
+- LinkedIn-inspired styling
+- Intuitive navigation
+
+## Technology Stack
+
+- **Frontend**: NiceGUI (Python-based UI framework)
+- **Backend**: FastAPI (High-performance Python web framework)
+- **Database**: SQLAlchemy V2 with SQLite (easily upgradeable to PostgreSQL)
+- **Authentication**: JWT tokens with bcrypt password hashing
+- **Validation**: Pydantic V2 for data validation
+- **Styling**: Tailwind CSS classes via NiceGUI
+
+## Quick Start
 
 ### Prerequisites
-
-- Python 3.8+
-- Docker (optional, for containerized deployment)
-- Fly.io account and `flyctl` CLI (optional, for Fly.io deployment)
+- Python 3.9 or higher
+- pip (Python package installer)
 
 ### Installation
 
-#### Automatic Setup (Recommended)
-
-1. Clone the repository
-2. Run the appropriate setup script for your operating system:
-
-   **Windows:**
-   ```
-   setup_and_run.bat
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd linkedin-clone
    ```
 
-   **Unix/MacOS:**
-   ```
-   chmod +x setup_and_run.sh
-   ./setup_and_run.sh
-   ```
-
-   **Alternative (All platforms):**
-   ```
-   python setup.py
-   ```
-
-   These scripts will:
-   - Check your Python version
-   - Create a virtual environment
-   - Install all dependencies
-   - Verify critical dependencies
-   - Provide activation instructions
-   - Optionally run the application
-
-#### Manual Setup
-
-1. Clone the repository
-2. Create a virtual environment:
-   ```
+2. **Create a virtual environment**
+   ```bash
    python -m venv venv
-   ```
-3. Activate the virtual environment:
-   - Windows:
-     ```
-     venv\Scripts\activate
-     ```
-   - Unix/MacOS:
-     ```
-     source venv/bin/activate
-     ```
-4. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-5. Verify installation:
-   ```
-   python -c "import uvicorn, fastapi, nicegui; print('Dependencies successfully installed!')"
+   
+   # On Windows
+   venv\Scripts\activate
+   
+   # On macOS/Linux
+   source venv/bin/activate
    ```
 
-#### Troubleshooting
-
-##### "uvicorn: command not found" Error
-
-If you encounter this error when running the application, it means the `uvicorn` command is not in your PATH. This typically happens when:
-
-1. The virtual environment is not activated
-2. The `uvicorn` package was not installed correctly
-
-**Solution:**
-
-1. Ensure your virtual environment is activated:
-   - Windows: `venv\Scripts\activate`
-   - Unix/MacOS: `source venv/bin/activate`
-
-2. Reinstall the dependencies:
-   ```
+3. **Install dependencies**
+   ```bash
    pip install -r requirements.txt
    ```
 
-3. Run the application using the Python module syntax instead of the command:
+4. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env file with your configuration
    ```
-   python -m uvicorn main:app --reload
-   ```
 
-4. **Create a `.env` file** in the `project_base` directory (you can copy `.env.example` if one exists and modify it). At a minimum, it might look like this if you want to change the default port:
-   ```env
-   PORT=8000
-   HOST=0.0.0.0
-   ```
-   If no `.env` file is present, the application will use default values (e.g., port 8000).
-
-### Running the Application Locally
-
-#### Method 1: Using main.py (Recommended)
-
-1. **Ensure your virtual environment is activated:**
-   - Windows: `venv\Scripts\activate`
-   - Unix/MacOS: `source venv/bin/activate`
-
-2. **Start the application:**
+5. **Run the application**
    ```bash
    python main.py
    ```
 
-#### Method 2: Using uvicorn directly
+6. **Open your browser**
+   Navigate to `http://localhost:8000`
 
-1. **Ensure your virtual environment is activated:**
-   - Windows: `venv\Scripts\activate`
-   - Unix/MacOS: `source venv/bin/activate`
+## Project Structure
 
-2. **Start the application using the uvicorn command:**
-   ```bash
-   uvicorn main:app --reload
-   ```
+```
+linkedin-clone/
+├── app/
+│   ├── core/                   # Core application configuration
+│   │   ├── config.py          # Settings and configuration
+│   │   ├── database.py        # Database setup and connection
+│   │   ├── security.py        # Authentication utilities
+│   │   └── logging.py         # Logging configuration
+│   ├── models/                 # SQLAlchemy database models
+│   │   ├── user.py            # User model
+│   │   ├── profile.py         # Professional profile models
+│   │   └── social.py          # Social networking models
+│   ├── schemas/                # Pydantic validation schemas
+│   │   ├── user.py            # User schemas
+│   │   ├── profile.py         # Profile schemas
+│   │   └── social.py          # Social schemas
+│   ├── services/               # Business logic layer
+│   │   ├── auth_service.py    # Authentication service
+│   │   ├── user_service.py    # User management service
+│   │   ├── profile_service.py # Profile management service
+│   │   └── social_service.py  # Social networking service
+│   └── main.py                # NiceGUI frontend application
+├── data/                       # Database files
+├── requirements.txt           # Python dependencies
+├── .env.example              # Environment variables template
+└── README.md                 # This file
+```
 
-   If you encounter a "uvicorn: command not found" error, use the Python module syntax instead:
-   ```bash
-   python -m uvicorn main:app --reload
-   ```
+## Usage Guide
 
-#### Accessing the Application
+### Getting Started
 
-- Open your browser and navigate to `http://localhost:8000` (or the port you specified in the `.env` file)
-- The NiceGUI UI will be available at `http://localhost:8000/ui`
+1. **Create an Account**
+   - Click "Sign In" on the homepage
+   - Switch to the "Register" tab
+   - Fill in your information and create an account
 
-## API Endpoints
+2. **Complete Your Profile**
+   - Add a professional headline
+   - Write a summary about yourself
+   - Add your work experience
+   - Include your education background
+   - List your skills
 
--   `GET /`: Returns a welcome message.
--   `GET /health`: Returns a health status, useful for monitoring.
+3. **Build Your Network**
+   - Visit the "My Network" page
+   - Send connection requests to other professionals
+   - Accept incoming connection requests
+   - Explore "People you may know" suggestions
+
+4. **Share Content**
+   - Create posts on your dashboard
+   - Share professional insights and updates
+   - Engage with your network's content through likes and comments
+
+### Key Features
+
+#### Professional Profiles
+- **Experience Section**: Add your work history with company, title, dates, and descriptions
+- **Education Section**: Include your educational background
+- **Skills Section**: List your professional skills
+- **Professional Summary**: Write about your career and expertise
+
+#### Networking
+- **Connection Requests**: Send and receive connection requests with optional messages
+- **Network Management**: View all your professional connections
+- **Discovery**: Find new people to connect with based on the platform's suggestions
+
+#### Content Sharing
+- **Post Creation**: Share updates, insights, and professional content
+- **Engagement**: Like and comment on posts from your network
+- **Feed Algorithm**: See content from your connections in chronological order
+
+## Configuration
+
+### Environment Variables
+
+Key configuration options in `.env`:
+
+```env
+# Application
+APP_NAME=LinkedIn Clone
+DEBUG=False
+
+# Server
+HOST=0.0.0.0
+PORT=8000
+
+# Security
+SECRET_KEY=your-secret-key-here
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Database
+DATABASE_URL=sqlite:///./data/linkedin_clone.db
+```
+
+### Database Configuration
+
+The application uses SQLite by default for easy setup. For production, you can switch to PostgreSQL:
+
+```env
+DATABASE_URL=postgresql://username:password@localhost/linkedin_clone
+```
+
+## Development
+
+### Adding New Features
+
+1. **Database Models**: Add new models in `app/models/`
+2. **API Schemas**: Define Pydantic schemas in `app/schemas/`
+3. **Business Logic**: Implement services in `app/services/`
+4. **UI Components**: Add UI components in `app/main.py`
+
+### Code Quality
+
+The project follows modern Python best practices:
+- Type hints throughout the codebase
+- Pydantic V2 for data validation
+- SQLAlchemy V2 for database operations
+- Comprehensive error handling
+- Structured logging
+
+## Security Features
+
+- **Password Security**: Bcrypt hashing for password storage
+- **Authentication**: JWT token-based authentication
+- **Input Validation**: Pydantic schemas validate all user inputs
+- **SQL Injection Protection**: SQLAlchemy ORM prevents SQL injection
+- **CORS Configuration**: Configurable CORS settings for API security
+
+## Performance Considerations
+
+- **Database Optimization**: Efficient queries with SQLAlchemy relationships
+- **Connection Pooling**: Database connection pooling for better performance
+- **Lazy Loading**: Optimized data loading strategies
+- **Pagination**: Built-in pagination for large datasets
 
 ## Deployment
 
-### Docker Deployment
+### Production Deployment
 
-1.  **Build the Docker image:**
-    ```bash
-    docker build -t my-fastapi-app .
-    ```
-2.  **Run the Docker container:**
-    ```bash
-    docker run -p 8000:8000 -d my-fastapi-app
-    ```
-    Replace `8000:8000` with `<host_port>:<container_port>` if you need to map to a different host port. The container port is determined by the `PORT` environment variable set in the `Dockerfile` or `fly.toml` (defaulting to 8000).
+1. **Set Production Environment**
+   ```env
+   DEBUG=False
+   SECRET_KEY=your-production-secret-key
+   DATABASE_URL=postgresql://user:pass@host/db
+   ```
 
-### Fly.io Deployment
+2. **Use Production Database**
+   - Set up PostgreSQL or another production database
+   - Update the `DATABASE_URL` in your environment
 
-1.  **Install `flyctl`**: Follow the instructions at [fly.io/docs/hands-on/install-flyctl/](https://fly.io/docs/hands-on/install-flyctl/).
-2.  **Login to Fly.io**: `fly auth login`
-3.  **Launch the app (first time only)**:
-    ```bash
-    fly launch --name your-unique-app-name --region sin
-    ```
-    (Replace `your-unique-app-name` and `sin` (Singapore) with your desired app name and region. This will also create a `fly.toml` if one doesn't exist, or update the existing one.)
-4.  **Deploy changes**:
-    ```bash
-    fly deploy
-    ```
+3. **Deploy with Docker** (optional)
+   ```dockerfile
+   FROM python:3.9-slim
+   WORKDIR /app
+   COPY requirements.txt .
+   RUN pip install -r requirements.txt
+   COPY . .
+   CMD ["python", "main.py"]
+   ```
 
-The `fly.toml` file is pre-configured for auto-scaling and to stop machines when idle to save costs.
+## Contributing
 
-## Customization
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
--   **Add new API endpoints**: Modify `project_base/app/main.py` to include new routes and logic.
--   **Modify dependencies**: Update `project_base/requirements.txt` and reinstall.
--   **Adjust Docker configuration**: Edit `project_base/Dockerfile`.
--   **Change deployment settings**: Update `project_base/fly.toml` for Fly.io.
+## License
 
-## Core Principles for Development
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-While this base is minimal, consider these principles as you expand your application:
+## Support
 
--   **Modularity**: Keep code organized into logical modules.
--   **Clarity**: Write clear, understandable code with type hints where appropriate.
--   **Testing**: Implement unit and integration tests for new features.
--   **Security**: Follow security best practices (input validation, authentication if needed, etc.).
--   **Documentation**: Keep this README and code comments up-to-date.
+For support and questions:
+- Create an issue in the repository
+- Check the documentation
+- Review the code examples in the project
+
+## Roadmap
+
+Future enhancements planned:
+- [ ] Real-time messaging system
+- [ ] Company pages and job postings
+- [ ] Advanced search and filtering
+- [ ] File upload for profile images and post media
+- [ ] Email notifications
+- [ ] Mobile-responsive improvements
+- [ ] Analytics and insights
+- [ ] Recommendation algorithms
+- [ ] API rate limiting
+- [ ] Advanced security features
+
+---
+
+Built with ❤️ using NiceGUI and FastAPI
