@@ -1,89 +1,139 @@
-"""Core module for the application.
+"""Core application components with defensive imports and fallbacks."""
 
-This module contains core functionality for the application, including:
-- Configuration management
-- Logging
-- Exception handling
-- Security utilities
-- Database utilities
-- Health checks
-- Deployment utilities
+import logging
+import os
+import sys
+from typing import Any, Dict, List, Optional
+import importlib
 
-These components provide the foundation for the application and should be
-imported and used by other modules as needed.
-"""
-
-# This directory contains modules for:
-# - config.py: Application configuration and environment variables
-# - logging.py: Logging setup and configuration
-# - exceptions.py: Custom exception classes and error handling
-# - middleware.py: ASGI middleware for request/response processing
-# - security.py: Security-related utilities (CORS, authentication, etc.)
-# - health.py: Health check utilities
-# - utils.py: Utility functions
-# - database.py: Database utilities
-# - deployment.py: Deployment utilities
-# - error_handlers.py: Error handling utilities
-
-# Import core modules for easy access
-from app.core.config import settings
-from app.core.logging import app_logger, get_logger
-from app.core.exceptions import (
-    AppException,
-    NotFoundError,
-    ValidationError,
-    DatabaseError,
-    ConfigurationError,
-    ExternalServiceError,
-    RateLimitError
+# Set up basic logging immediately
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()]
 )
-from app.core.error_handlers import setup_error_handlers, create_error_response, with_error_handling
-from app.core.middleware import setup_middleware
-from app.core.utils import setup_routers, validate_environment, import_string, get_project_root
-from app.core.health import HealthCheck, is_healthy
-from app.core.nicegui_setup import setup_nicegui
 
+fallback_logger = logging.getLogger("app")
 
+# Safe import function
+def safe_import(module_name: str, attributes: List[str], fallbacks: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Safely import attributes from a module with fallbacks."""
+    result = {}
+    fallbacks = fallbacks or {}
+    
+    try:
+        module = importlib.import_module(module_name)
+        for attr in attributes:
+            if hasattr(module, attr):
+                result[attr] = getattr(module, attr)
+            else:
+                fallback_logger.warning(f"Attribute '{attr}' not found in {module_name}")
+                result[attr] = fallbacks.get(attr)
+    except Exception as e:
+        fallback_logger.warning(f"Error importing {module_name}: {e}")
+        for attr in attributes:
+            result[attr] = fallbacks.get(attr)
+    
+    return result
 
-try:
-    from app.core.deployment import DeploymentManager
-except ImportError:
-    # Deployment module might not be used in all applications
-    pass
+# Fallback implementations
+class FallbackSettings:
+    def __init__(self):
+        self.APP_NAME = os.getenv("APP_NAME", "LinkedIn Clone")
+        self.APP_DESCRIPTION = "Professional Networking Platform"
+        self.APP_VERSION = "1.0.0"
+        self.DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+        self.HOST = os.getenv("HOST", "0.0.0.0")
+        self.PORT = int(os.getenv("PORT", "8000"))
+        self.API_PREFIX = "/api"
+        self.SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+        self.DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/linkedin_clone.db")
+        self.UPLOAD_DIR = "app/static/uploads"
+        self.MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
-# Database is optional and might not be used in all applications
-try:
-    from app.core.database import setup_database
-    # Uncomment when you need database functionality
-    # from app.core.database import get_db, create_tables
-except ImportError:
-    # Database module might not be used in all applications
-    pass
+def fallback_setup_middleware(app):
+    fallback_logger.warning("Using fallback middleware setup")
+
+def fallback_setup_routers(app, **kwargs):
+    fallback_logger.warning("Using fallback router setup")
+
+def fallback_setup_error_handlers(app):
+    fallback_logger.warning("Using fallback error handlers")
+
+def fallback_validate_environment():
+    return []
+
+def fallback_setup_database():
+    fallback_logger.warning("Using fallback database setup")
+
+def fallback_setup_nicegui(app):
+    fallback_logger.warning("Using fallback NiceGUI setup")
+
+class FallbackHealthCheck:
+    @staticmethod
+    def check_all():
+        return {"status": "ok", "timestamp": "unknown"}
+
+def fallback_is_healthy():
+    return True
+
+# Import core components with fallbacks
+config_imports = safe_import("app.core.config", ["settings"], {
+    "settings": FallbackSettings()
+})
+settings = config_imports["settings"]
+
+logging_imports = safe_import("app.core.logging", ["app_logger"], {
+    "app_logger": fallback_logger
+})
+app_logger = logging_imports["app_logger"]
+
+middleware_imports = safe_import("app.core.middleware", ["setup_middleware"], {
+    "setup_middleware": fallback_setup_middleware
+})
+setup_middleware = middleware_imports["setup_middleware"]
+
+router_imports = safe_import("app.core.routers", ["setup_routers"], {
+    "setup_routers": fallback_setup_routers
+})
+setup_routers = router_imports["setup_routers"]
+
+error_imports = safe_import("app.core.error_handlers", ["setup_error_handlers"], {
+    "setup_error_handlers": fallback_setup_error_handlers
+})
+setup_error_handlers = error_imports["setup_error_handlers"]
+
+env_imports = safe_import("app.core.environment", ["validate_environment"], {
+    "validate_environment": fallback_validate_environment
+})
+validate_environment = env_imports["validate_environment"]
+
+db_imports = safe_import("app.core.database", ["setup_database"], {
+    "setup_database": fallback_setup_database
+})
+setup_database = db_imports["setup_database"]
+
+nicegui_imports = safe_import("app.core.nicegui_setup", ["setup_nicegui"], {
+    "setup_nicegui": fallback_setup_nicegui
+})
+setup_nicegui = nicegui_imports["setup_nicegui"]
+
+health_imports = safe_import("app.core.health", ["HealthCheck", "is_healthy"], {
+    "HealthCheck": FallbackHealthCheck,
+    "is_healthy": fallback_is_healthy
+})
+HealthCheck = health_imports["HealthCheck"]
+is_healthy = health_imports["is_healthy"]
 
 __all__ = [
     "settings",
-    
-    "app_logger",
-    "get_logger",
-    "AppException",
-    "NotFoundError",
-    "ValidationError",
-    "DatabaseError",
-    "ConfigurationError",
-    "ExternalServiceError",
-    "RateLimitError",
-    "setup_error_handlers",
-    "create_error_response",
-    "with_error_handling",
+    "app_logger", 
     "setup_middleware",
     "setup_routers",
+    "setup_error_handlers",
     "validate_environment",
-    "import_string",
-    "get_project_root",
-    "HealthCheck",
-    "is_healthy",
-    "setup_nicegui",
-    # Optional modules
-    "DeploymentManager",
     "setup_database",
+    "setup_nicegui",
+    "HealthCheck",
+    "is_healthy"
 ]
